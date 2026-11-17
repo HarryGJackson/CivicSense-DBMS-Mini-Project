@@ -15,6 +15,12 @@ and runs a cosine-similarity search to flag likely duplicates before a new
 complaint is filed. The web app is built with Next.js 14 and has three roles:
 Citizen, Staff and Admin.
 
+## Contributions
+
+- Aadarsh Reddy Yedhala: database design, SQL DDL/DML, triggers, stored
+  procedure and views (`sql/`, `diagrams/`)
+- Satvik J: Next.js frontend, API routes and vector search (`civicsense-web/`)
+
 ## Folder layout
 
 ```
@@ -26,7 +32,9 @@ diagrams/        ER diagrams and relational schema
 
 ## Running it
 
-Needs PostgreSQL with the pgvector extension, and Node.js.
+Prerequisites: PostgreSQL 17 with the pgvector extension, and Node.js.
+The first `npm run reset` downloads the embedding model (about 90 MB);
+after that it runs offline.
 
 ```bash
 cd civicsense-web
