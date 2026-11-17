@@ -25,6 +25,11 @@ export async function POST(request, { params }) {
     }
 
     await transaction(async (client) => {
+      // tell trg_log_status who is making the change (lasts for this transaction only)
+      await client.query(`SELECT set_config('civicsense.actor_id', $1, true)`, [
+        String(session.user_id),
+      ]);
+
       // the status change itself; trigger trg_log_status writes the audit row
       await client.query(
         `UPDATE complaints

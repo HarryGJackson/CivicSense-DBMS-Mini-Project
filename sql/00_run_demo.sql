@@ -106,9 +106,9 @@ SELECT dept_name, total_assigned, pending, in_progress, completed,
        avg_resolution_hours FROM v_department_workload ORDER BY total_assigned DESC;
 
 -- =====================================================================
--- 11. VECTOR SEARCH - needs embeddings. Run this first, on your laptop:
---       npm install @xenova/transformers pg dotenv
---       node scripts/generate_embeddings.mjs
+-- 11. VECTOR SEARCH - needs embeddings. Run this first, from civicsense-web/:
+--       npm install
+--       npm run embed      (npm run reset also does this)
 --     Until then complaints.embedding is NULL and these return nothing.
 -- =====================================================================
 \echo '=== 11. Vector : how many complaints currently carry an embedding ==='

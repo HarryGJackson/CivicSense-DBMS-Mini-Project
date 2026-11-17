@@ -2,7 +2,7 @@
 -- CivicSense : Semantic Complaint Routing and Duplicate Detection System
 -- DBMS Experiential Learning - Level 3 Project
 -- File 01 : DDL - schema, constraints, indexes
--- Engine   : PostgreSQL 16 + pgvector
+-- Engine   : PostgreSQL 17 + pgvector
 -- =====================================================================
 -- Run with:  psql -U postgres -d civicsense -f 01_schema.sql
 -- =====================================================================
@@ -56,7 +56,7 @@ CREATE TABLE wards (
     ward_name    VARCHAR(100) NOT NULL,
     zone         VARCHAR(50)  NOT NULL,
 
-    CONSTRAINT uq_wards_number CHECK (ward_number > 0),
+    CONSTRAINT chk_wards_number CHECK (ward_number > 0),
     CONSTRAINT uq_wards_no     UNIQUE (ward_number),
     CONSTRAINT chk_wards_zone  CHECK (zone IN ('NORTH','SOUTH','EAST','WEST','CENTRAL'))
 );

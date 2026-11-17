@@ -203,9 +203,9 @@ INSERT INTO complaints (title, description, filed_by, ward_id, category_id, rout
 -- Child, parent, similarity score, acting officer.
 --
 -- The similarity values below are ILLUSTRATIVE placeholders so the
--- schema is demonstrable before embeddings exist. After running
--- scripts/generate_embeddings.mjs, 05_recompute_similarity.sql
--- replaces them with the real cosine similarity from pgvector.
+-- schema is demonstrable before embeddings exist. `npm run embed`
+-- (civicsense-web/scripts/embed.mjs, also run by `npm run reset`)
+-- then replaces them with the real cosine similarity from pgvector.
 -- ---------------------------------------------------------------------
 CALL merge_duplicate_complaint(2,  1, 0.8412, 24);   -- bus stand pothole
 CALL merge_duplicate_complaint(3,  2, 0.7968, 24);   -- merged into #2,

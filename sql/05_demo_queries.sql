@@ -143,21 +143,24 @@ SELECT * FROM v_sla_breaches ORDER BY hours_overdue DESC;
 
 -- =====================================================================
 -- Q7. THE JUSTIFICATION SLIDE
---     Same query string, two retrieval strategies.
---     Requires embeddings - run generate_embeddings.mjs first.
+--     Same input, two retrieval strategies: complaint #2's title,
+--     "Damaged road surface by bus stand", looked up against every
+--     other complaint.
+--     Requires embeddings - run `npm run reset` (or `npm run embed`) first.
 -- =====================================================================
 
 -- 7a : KEYWORD search (PostgreSQL full-text, GIN index)
---      The citizen types words that do not appear in the stored complaint.
+--      Complaint #1 is the same pothole but uses different words.
 SELECT c.complaint_id,
        c.title,
        ts_rank(to_tsvector('english', c.title || ' ' || c.description),
-               plainto_tsquery('english', 'big hole near the bus stop')) AS rank
+               plainto_tsquery('english', 'Damaged road surface by bus stand')) AS rank
   FROM complaints c
- WHERE to_tsvector('english', c.title || ' ' || c.description)
-       @@ plainto_tsquery('english', 'crater beside the bus stand autos tipping')
+ WHERE c.complaint_id <> 2
+   AND to_tsvector('english', c.title || ' ' || c.description)
+       @@ plainto_tsquery('english', 'Damaged road surface by bus stand')
  ORDER BY rank DESC;
--- Expected: few or no rows. No shared vocabulary.
+-- Expected: few or no rows - #1 is missed. No shared vocabulary.
 
 -- 7b : VECTOR search (pgvector, HNSW index, cosine similarity)
 --      Same intent, expressed differently - and it is found.
@@ -171,7 +174,8 @@ SELECT c.complaint_id,
    AND c.embedding IS NOT NULL
  ORDER BY c.embedding <=> (SELECT embedding FROM complaints WHERE complaint_id = 2)
  LIMIT 5;
--- Expected: complaint 1 at the top with high similarity.
+-- Expected: complaint 1 (same pothole, ~0.52) in the top 3, found even
+-- though 7a missed it. #14 also ranks high: a different pothole, similar meaning.
 
 
 -- =====================================================================

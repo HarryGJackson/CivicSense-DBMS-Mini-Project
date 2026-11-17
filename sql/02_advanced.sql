@@ -7,14 +7,32 @@
 -- A. TRIGGER 1 - audit trail into the weak entity
 --    Every status change writes a row into complaint_status_history.
 --    seq_no is the partial key, generated per complaint.
+--
+--    Who made the change: a trigger cannot see the logged-in user, so
+--    the caller states it with
+--        SELECT set_config('civicsense.actor_id', '<user_id>', true);
+--    inside the same transaction (the web app and the merge procedure
+--    both do this). If nobody set it:
+--      INSERT -> the citizen who filed the complaint
+--      UPDATE -> the user behind the assigned officer (handled_by)
 -- =====================================================================
 CREATE OR REPLACE FUNCTION fn_log_status_change()
 RETURNS TRIGGER AS $$
 DECLARE
     v_next_seq INTEGER;
+    v_actor    INTEGER;
 BEGIN
     IF TG_OP = 'UPDATE' AND OLD.status IS NOT DISTINCT FROM NEW.status THEN
         RETURN NEW;                      -- nothing to log
+    END IF;
+
+    v_actor := NULLIF(current_setting('civicsense.actor_id', true), '')::INTEGER;
+    IF v_actor IS NULL THEN
+        IF TG_OP = 'INSERT' THEN
+            v_actor := NEW.filed_by;
+        ELSE
+            SELECT user_id INTO v_actor FROM staff WHERE staff_id = NEW.handled_by;
+        END IF;
     END IF;
 
     SELECT COALESCE(MAX(seq_no), 0) + 1
@@ -28,7 +46,7 @@ BEGIN
             v_next_seq,
             CASE WHEN TG_OP = 'UPDATE' THEN OLD.status ELSE NULL END,
             NEW.status,
-            NEW.filed_by,
+            v_actor,
             CASE WHEN TG_OP = 'INSERT' THEN 'Complaint registered'
                  ELSE 'Status changed to ' || NEW.status END);
     RETURN NEW;
@@ -247,6 +265,9 @@ BEGIN
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Child complaint % does not exist', p_child_id;
     END IF;
+
+    -- tell trg_log_status who is merging (local to this transaction)
+    PERFORM set_config('civicsense.actor_id', p_actor_id::TEXT, true);
 
     -- 1. point the child at its parent (trigger logs the status change)
     UPDATE complaints
