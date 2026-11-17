@@ -49,6 +49,14 @@ SELECT c.complaint_id, w.ward_name, LEFT(c.title,32) AS title, c.created_at
                         WHERE c2.ward_id = c.ward_id)
  ORDER BY w.ward_name LIMIT 6;
 
+\echo '=== 5b. CORRELATED NOT EXISTS : open complaints nobody has endorsed ==='
+SELECT c.complaint_id, LEFT(c.title,36) AS title, c.status
+  FROM complaints c
+ WHERE c.status = 'OPEN'
+   AND NOT EXISTS (SELECT 1 FROM endorsements e
+                    WHERE e.complaint_id = c.complaint_id)
+ ORDER BY c.complaint_id;
+
 \echo '=== 6. RECURSIVE CTE : walk a duplicate cluster to any depth ==='
 WITH RECURSIVE dup_chain AS (
         SELECT complaint_id, parent_complaint_id, title,

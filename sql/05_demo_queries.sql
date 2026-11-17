@@ -55,6 +55,23 @@ SELECT c.complaint_id,
 
 
 -- =====================================================================
+-- Q3b. CORRELATED NOT EXISTS : open complaints nobody has endorsed yet
+--      The inner query refers to c.complaint_id from the outer row, so it
+--      is re-evaluated per complaint. NOT EXISTS stops at the first match.
+-- =====================================================================
+SELECT c.complaint_id,
+       c.title,
+       c.status
+  FROM complaints c
+ WHERE c.status = 'OPEN'
+   AND NOT EXISTS (SELECT 1
+                     FROM endorsements e
+                    WHERE e.complaint_id = c.complaint_id)
+ ORDER BY c.complaint_id;
+-- Expected: #12, #14, #23
+
+
+-- =====================================================================
 -- Q4. RECURSIVE RELATIONSHIP : a parent complaint and everything
 --     that got merged into it (self-join on complaints)
 -- =====================================================================
